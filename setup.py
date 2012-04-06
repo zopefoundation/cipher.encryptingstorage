@@ -22,7 +22,7 @@ def read(*rnames):
 
 setup(
     name='cipher.encryptingstorage',
-    version='1.0.0.dev0',
+    version='1.0.0',
     url="http://pypi.python.org/pypi/cipher.encryptingstorage/",
     author='Zope Foundation and Contributors',
     author_email='zope-dev@zope.org',
