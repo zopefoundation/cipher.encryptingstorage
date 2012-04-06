@@ -2,10 +2,10 @@
 ZODB storage wrapper for encryption of database records
 =============================================================
 
-Idea and quite of lot of code taken from zc.zlibstorage.
+Idea and quite a lot of code taken from zc.zlibstorage.
 
 The ``cipher.encryptingstorage`` package provides ZODB storage wrapper
-implementations that provides encryption of database records.
+implementations that provides encryption and compression of database records.
 
 .. contents::
 
