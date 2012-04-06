@@ -1,0 +1,11 @@
+=======
+CHANGES
+=======
+
+1.0.0 (unreleased)
+------------------
+
+0.1.0 (2012-02-14)
+------------------
+
+- Initial release as a separate package.

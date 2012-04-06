@@ -1,0 +1,32 @@
+<component>
+  <sectiontype name="encryptingstorage" datatype="cipher.encryptingstorage.ZConfig"
+               implements="ZODB.storage">
+    <section type="ZODB.storage" name="*" attribute="base" required="yes" />
+    <key name="encrypt" datatype="boolean" required="no">
+      <description>
+        An option to switch encrypt (and compression) on/off
+        When omitted it defaults to ON
+      </description>
+    </key>
+    <key name="config" datatype="existing-file" required="no">
+      <description>
+        filename of the encryption configuration
+      </description>
+    </key>
+  </sectiontype>
+  <sectiontype name="serverencryptingstorage" datatype="cipher.encryptingstorage.ZConfigServer"
+               implements="ZODB.storage">
+    <section type="ZODB.storage" name="*" attribute="base" required="yes" />
+    <key name="encrypt" datatype="boolean" required="no">
+      <description>
+        An option to switch encrypt (and compression) on/off
+        When omitted it defaults to ON
+      </description>
+    </key>
+    <key name="config" datatype="existing-file" required="no">
+      <description>
+        filename of the encryption configuration
+      </description>
+    </key>
+  </sectiontype>
+</component>
