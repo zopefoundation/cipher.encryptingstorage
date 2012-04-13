@@ -198,17 +198,19 @@ to decrypt and decrypt data records are available as
 ``cipher.encryptingstorage`` module-level functions:
 
 ``encrypt(data)``
-   Encrypt the given data if:
+  Encrypt the given data if:
 
-   - it doesn't start with the encrypted-record marker, ``'.e'``
+    - it doesn't start with the encrypted-record marker, ``'.e'``
 
-   The encrypted data are returned.
+  The encrypted data are returned.
 
 ``decrypt(data)``
-   Decrypt the data if it is encrypted.
+  Decrypt the data if it is encrypted.
 
-   The decrypted (or original) data are returned.
+  The decrypted (or original) data are returned.
 
 .. basic sanity check :)
 
-   >>> _ = (cipher.encryptingstorage.compress, cipher.encryptingstorage.decompress)
+    >>> _ = (cipher.encryptingstorage.compress, cipher.encryptingstorage.decompress)
+
+    >>> _ = (cipher.encryptingstorage.encrypt, cipher.encryptingstorage.decrypt)
