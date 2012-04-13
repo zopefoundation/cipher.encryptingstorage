@@ -85,10 +85,10 @@ server configuration file::
 
     >>> storage.close()
 
-#Applying encryption on the client this way is attractive because, in
-#addition to reducing the size of stored database records on the
-#server, you also reduce the size of records sent from the server to the
-#client and the size of records stored in the client's ZEO cache.
+Applying encryption (and compression) on the client this way is attractive
+because, in addition to reducing the size of stored database records on the
+server, you also reduce the size of records sent from the server to the
+client and the size of records stored in the client's ZEO cache.
 
 Decrypting only
 ==================
