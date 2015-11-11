@@ -13,13 +13,15 @@
 ##############################################################################
 import zlib
 import ZODB.interfaces
-import zope.interface
+from zope.interface import directlyProvides
+from zope.interface import implementer
+from zope.interface import providedBy
 
 from cipher.encryptingstorage import encrypt_util
 
-class EncryptingStorage(object):
 
-    zope.interface.implements(ZODB.interfaces.IStorageWrapper)
+@implementer(ZODB.interfaces.IStorageWrapper)
+class EncryptingStorage(object):
 
     copied_methods = (
             'close', 'getName', 'getSize', 'history', 'isReadOnly',
@@ -44,7 +46,7 @@ class EncryptingStorage(object):
             if v is not None:
                 setattr(self, name, v)
 
-        zope.interface.directlyProvides(self, zope.interface.providedBy(base))
+        directlyProvides(self, providedBy(base))
 
         base.registerDB(self)
 
@@ -71,6 +73,7 @@ class EncryptingStorage(object):
 
     def pack(self, pack_time, referencesf, gc=None):
         _untransform = self._untransform
+
         def refs(p, oids=None):
             return referencesf(_untransform(p), oids)
         if gc is not None:
@@ -109,26 +112,35 @@ class EncryptingStorage(object):
                                      blobfilename, prev_txn, transaction)
 
     def invalidateCache(self):
+        """ For IStorageWrapper
+        """
         return self.db.invalidateCache()
 
     def invalidate(self, transaction_id, oids, version=''):
+        """ For IStorageWrapper
+        """
+        return self.db.invalidateCache()
+
         return self.db.invalidate(transaction_id, oids, version)
 
     def references(self, record, oids=None):
+        """ For IStorageWrapper
+        """
         return self.db.references(self._untransform(record), oids)
 
     def transform_record_data(self, data):
+        """ For IStorageWrapper
+        """
         return self._transform(self._db_transform(data))
 
     def untransform_record_data(self, data):
+        """ For IStorageWrapper
+        """
         return self._db_untransform(self._untransform(data))
 
     def record_iternext(self, next=None):
         oid, tid, data, next = self.base.record_iternext(next)
         return oid, tid, self._untransform(data), next
-
-    def copyTransactionsFrom(self, other):
-        ZODB.blob.copyTransactionsFromTo(other, self)
 
     def copyTransactionsFrom(self, other):
         ZODB.blob.copyTransactionsFromTo(other, self)
@@ -141,8 +153,10 @@ def compress(data):
             return compressed
     return data
 
+
 def decompress(data):
     return data[:2] == '.z' and zlib.decompress(data[2:]) or data
+
 
 def encrypt(data):
     try:
@@ -159,6 +173,7 @@ def encrypt(data):
     data = encrypt_util.ENCRYPTION_UTILITY.encryptBytes(data)
     return '.e'+data
 
+
 def decrypt(data):
     try:
         if data[:2] != '.e':
@@ -172,6 +187,7 @@ def decrypt(data):
     data = decompress(data)
     return data
 
+
 class ServerEncryptingStorage(EncryptingStorage):
     """Use on ZEO storage server when EncryptingStorage is used on client
 
@@ -183,6 +199,7 @@ class ServerEncryptingStorage(EncryptingStorage):
         'load', 'loadBefore', 'loadSerial', 'store', 'restore',
         'iterator', 'storeBlob', 'restoreBlob', 'record_iternext',
         )
+
 
 class Transaction(object):
 
@@ -218,6 +235,7 @@ class ZConfig:
             encrypt_util.init_local_facility(
                 {'__file__': cfg, 'here': '.'})
         return self._factory(base, encrypt)
+
 
 class ZConfigServer(ZConfig):
 

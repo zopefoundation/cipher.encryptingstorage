@@ -110,8 +110,8 @@ def init_local_facility(conf):
         # just don't provide utilities, who knows what will be defined
         # by the main app
 
-        #provideUtility(ENCRYPTION_UTILITY, IKeyHolder)
-        #provideUtility(kmf)
+        # provideUtility(ENCRYPTION_UTILITY, IKeyHolder)
+        # provideUtility(kmf)
 
     else:
         ENCRYPTION_UTILITY = TrivialEncryptionUtility()
