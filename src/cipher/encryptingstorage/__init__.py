@@ -11,8 +11,12 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
+import os
+import shutil
 import zlib
 import ZODB.interfaces
+from ZODB.POSException import POSKeyError
+from ZODB.blob import BlobFile
 from zope.interface import directlyProvides
 from zope.interface import implementer
 from zope.interface import providedBy
@@ -27,7 +31,7 @@ class EncryptingStorage(object):
             'close', 'getName', 'getSize', 'history', 'isReadOnly',
             'lastTransaction', 'new_oid', 'sortKey',
             'tpc_abort', 'tpc_begin', 'tpc_finish', 'tpc_vote',
-            'loadBlob', 'openCommittedBlobFile', 'temporaryDirectory',
+            'temporaryDirectory',
             'supportsUndo', 'undo', 'undoLog', 'undoInfo',
             )
 
@@ -35,8 +39,10 @@ class EncryptingStorage(object):
         self.base = base
 
         if (lambda encrypt=True: encrypt)(*args, **kw):
+            self._encrypt = True
             self._transform = encrypt  # Refering to module func below!
         else:
+            self._encrypt = False
             self._transform = lambda data: data
 
         self._untransform = decrypt
@@ -96,18 +102,43 @@ class EncryptingStorage(object):
         return self.base.restore(
             oid, serial, self._transform(data), version, prev_txn, transaction)
 
+    def openCommittedBlobFile(self, oid, serial, blob=None):
+        blob_filename = self.loadBlob(oid, serial)
+        if blob is None:
+            return open(blob_filename, 'rb')
+        else:
+            return BlobFile(blob_filename, 'r', blob)
+
+    def loadBlob(self, oid, serial):
+        """Return the filename where the blob file can be found.
+        """
+        filename = self.fshelper.getBlobFilename(oid, serial)
+        if not os.path.exists(filename):
+            raise POSKeyError("No blob file", oid, serial)
+        return decrypt_file(filename, self.fshelper.base_dir)
+
     def iterator(self, start=None, stop=None):
         for t in self.base.iterator(start, stop):
             yield Transaction(t)
 
     def storeBlob(self, oid, oldserial, data, blobfilename, version,
                   transaction):
+
+        if self._encrypt:
+            encrypt_file(blobfilename)
+
         return self.base.storeBlob(
             oid, oldserial, self._transform(data), blobfilename, version,
             transaction)
 
     def restoreBlob(self, oid, serial, data, blobfilename, prev_txn,
                     transaction):
+        # Copies the original file to tmp/blobfilename
+        blobfilename = decrypt_file(blobfilename, self.fshelper.base_dir)
+        # Now overwrite the file in tmp.
+        encrypt_file(blobfilename)
+
+        # And store it in the db.
         return self.base.restoreBlob(oid, serial, self._transform(data),
                                      blobfilename, prev_txn, transaction)
 
@@ -119,8 +150,6 @@ class EncryptingStorage(object):
     def invalidate(self, transaction_id, oids, version=''):
         """ For IStorageWrapper
         """
-        return self.db.invalidateCache()
-
         return self.db.invalidate(transaction_id, oids, version)
 
     def references(self, record, oids=None):
@@ -183,9 +212,74 @@ def decrypt(data):
         return data
     # 1. decrypt here!!!
     data = encrypt_util.ENCRYPTION_UTILITY.decryptBytes(data[2:])
+
     # 2. decompress
     data = decompress(data)
     return data
+
+
+def encrypt_file(filename):
+    """ Reads the file "filename" and overwrites it
+    with its data encrypted.
+
+    :param filename: File to encrypt and override.
+    """
+
+    tmp_file = filename + '.enc'
+    with open(filename, 'rb') as fsrc:
+        with open(tmp_file, 'wb') as fdst:
+            fdst.write('.e')
+            encrypt_util.ENCRYPTION_UTILITY.encrypt_file(fsrc, fdst)
+
+    os.remove(filename)
+    os.rename(tmp_file, filename)
+
+
+def decrypt_file(filename, blob_dir):
+    """ Reads the import "filename" decrypts it
+    and writes the decrypted data to a temp file in
+    tmp directory parallel to the 'blobstorage'.
+
+    IF the file doesn't exists in temp_dir
+    ELSE it just returns the path in temp_dir.
+
+    If the file isn't encrypted or decrpytion fails it just copies the
+    src.
+
+    :param filename: Encrypted file to read.
+    :param blob_dir: Path to the blob storage.
+
+    :returns:   The path to the temporary file.
+
+    TODO: Currently theres no code that handles the deletion of the file.
+    """
+
+    temp_dir = os.path.join(blob_dir, os.path.pardir, 'tmp')
+
+    tmp_filename = os.path.abspath(
+        os.path.join(temp_dir, filename[len(blob_dir):])
+    )
+
+    if os.path.exists(tmp_filename):
+        return tmp_filename
+
+    new_tmp_dir = os.path.dirname(tmp_filename)
+    if not os.path.exists(new_tmp_dir):
+        os.makedirs(new_tmp_dir, 0o700)
+
+    with open(filename, 'rb') as fsrc:
+        header = str(fsrc.read(2))
+        if header != '.e':
+            # File isn't encrypted
+            fsrc.seek(0)
+            with open(tmp_filename, 'wb') as fdst:
+                shutil.copyfileobj(fsrc, fdst)
+
+        else:
+            with open(tmp_filename, 'wb') as fdst:
+                encrypt_util.ENCRYPTION_UTILITY.decrypt_file(fsrc, fdst)
+
+    return tmp_filename
 
 
 class ServerEncryptingStorage(EncryptingStorage):

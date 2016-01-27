@@ -5,8 +5,8 @@ CHANGES
 1.0.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Add encryption for blobstorage.
+  [pcdummy]
 
 1.0.0 (2012-04-06)
 ------------------

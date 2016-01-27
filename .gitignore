@@ -3,6 +3,7 @@
 *.pyc
 .installed.cfg
 .mr.developer.cfg
+pip-selfcheck.json
 .project
 .pydevproject
 .settings/
@@ -18,3 +19,12 @@ htmlcov/
 *.log
 output.xml
 *.swp
+include/
+lib/
+local/
+share/
+packages/
+src-mrd/
+
+# Sublime
+*.sublime-*
