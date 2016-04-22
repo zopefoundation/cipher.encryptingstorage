@@ -2,8 +2,8 @@
 CHANGES
 =======
 
-1.0.1 (unreleased)
-------------------
+1.1 (2016-04-22)
+----------------
 
 - Add encryption for blobstorage.
   [pcdummy]
