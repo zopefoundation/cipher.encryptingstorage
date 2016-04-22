@@ -13,10 +13,12 @@
 ##############################################################################
 from zope.testing import setupstack
 
+import base64
+import cipher.encryptingstorage
 import doctest
+import os
 import transaction
 import unittest
-import cipher.encryptingstorage
 import ZEO.tests.testZEO
 import zlib
 import ZODB.config
@@ -35,10 +37,67 @@ def test_config():
 To configure a encryptingstorage, import cipher.encryptingstorage and use the
 encryptingstorage tag:
 
+    >>> kek_key = base64.b64decode(
+    ... '''LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpQcm9jLVR5cGU6IDQsRU5DUllQVEVECkRF
+    ... Sy1JbmZvOiBERVMtRURFMy1DQkMsMTIwQkZGREQ3NEZGRjg0MQoKMFk1ODFGcHgyMzBIZjZRa3hP
+    ... MVRvWjYvOU1YazhIK3pVUFNQemdTSXpnWWdJMUFwQTJMWEs5YlpudU1qbDNsUgpUUGpSWXBVWTFa
+    ... ZHpYWmpvTGJRV2pYNzd6Z2JKQlc1T2RyWG9TSnNXKzAvWlRtWTUwNy8ycVIzbHVjK3VSTUtkCnRO
+    ... OUtlandrbXArUno2TmhDM1ZDdHZqUktzaU5sRmgxYjhmTkQwUlRHcmFyQXZ5ZnpsZjdaVUlsUUVE
+    ... ZGduNzIKOWkyTzRaNHo3aFlSdmc5aDlVSTMwc3FIaWk4c21taVlWTE9iaVF4clBQcXIzWkhXVDVK
+    ... Rmt5VnQ2bnUyTFJaSwovWWpLSmY1dU9yU2VMdktNMDNiVUE3bGQrK1NMTElpK1c2RHYrbnNxWmRv
+    ... ZkFocU0zMk9waTNRcHA2YUI4aEtlCnRSbytuYXhoNlMvTHNuT29kVXAwZ3kycE9tVVV5Q1RqM2JS
+    ... YVRPcDhiVTY1aVhOY29scGlCVFdoRDcyVnM5VUEKZDNNWGtBbE5CUTdxQlFzUTJJODlWY2ZIOGFY
+    ... YlZkUXQ2Y2ozWU1CWGU1ZDVIZGFUOGkvbzdzWlFpZXZWakFGbAo4SHJUVWFIcmN4bHBON0lyOThR
+    ... alJreHRVZWplOUk1OVg2LzAvbFptS1hyRDA5V1NmTmtDSjRvTnA0MFNycnRUCi92MWh0cWVQc1lL
+    ... MnkyekkvcWlCckJDZjg3YldFTXBseERTcC9lOFA1ZUwwSFgvMG9LQWNXc0VYUktPRWY4U3cKOXQv
+    ... aXFnTjNJQ2tabEFFbG9wb2hOMUU4OVRkeEoza1JrMFFOU21XRU9QWUJXMTJQRDlhdnZlaU9CN2hT
+    ... ODB5TAp1MjBJckhJVW82bkx0K1BwSHBwb0JSUFJvc2wzRTkwcG9LVDgvZnZLV2VwZmRLQTQwVmY5
+    ... TVNvSFZOWDhMOFlXClpjUUlCbVZkcDMrZ0JLeGVwdlVWbStCcS9nSmpISUVROFlJL1ROYUltSGdJ
+    ... aUE3YjEvS3pxRkNPcmZnS0pnY1kKbVR3NjdPWU44bnJFOE1XZnJMK0hVOW1HNkhYK09QY29GSFgw
+    ... Y3FPNGxFYWZuY3JFRG14UUludVRaUDNvaER1Zwpac1dTZE8yd1Q0NXJEWmxUTGhneTR3aWpxUG1J
+    ... TEwrU0RNemQ3R0h3cE0xcXJCNWU1UFo1dEpaRlc1cnlZSmdlClkyaFNIa1YxZWFGMWRBRTFWdUhv
+    ... Qjd4d0hhckRXRkU4OFdsK1NwK0VETEZXSThzNGhteG5lTFdwOUFlMmc0WW0KbXNXalF3cXVtM0Nm
+    ... dkw4eFJyWldqZDQvUTUxM2RtY1EvamRqeEhLWWFjMjJqdTBhRUljWG9qMzRoUnZYUTRDVwpBdlVF
+    ... UnJjbDRUTmNDNkdSWFdvb3pQMFdDU0Jid3ZpRDJBVzdmWkpFK1BPSyt4d3ZhYUFSSXFsR2Urb3N5
+    ... WDVOCmwrUWJyN2M0OGdmZExoNjlqT3UwS3JWaCs1ZUV6WUxYYTJnaHo2NHFheXh4cUY0R0F4ZmZQ
+    ... WUt3cEl1eVRmdDEKZFd4bnNjVkM4QlZsM1N4V01tVnZ1SWNHR3ZjUUttUHQ3d2dxL3R0UWVCWlFK
+    ... b1ZvQkhJK0l2QXNlQytsbC84RApvOU02bVJuT0VvckhIMWR5TGY5KzE1WkxkSFQzRU5oR2dTcitI
+    ... ajI2Nm5ybWtXOG5jRFBVMDFKaTJNNE54TDJICi9mR0xwOTJOUllVc0xONytlQlFMZEY3T0g1VWhX
+    ... N1BjMkRtMkFlSlZNSzFqRFEyR2plckJlK0tuUElQaVAwVE4KRG1WTUpSTmdMNkgzYlFBQVlzQUpU
+    ... VlZGUEx5eTZxZHcrVDU0cXU3Uko3Qkk3SEtIRVlKc3E4WmxLcVhMRmhZLwpreW5mVjNNcE1LSGpi
+    ... N0h0eHFKSzVNZ0tsN0ZST2VNazMyYVhhOGVJL0U3K0I1aXR6TWdranlSWFhJUFE5NkpHCkNxVVVC
+    ... MDFKSERobERhUVBOTUpUTGpMOFpIMW5JWktHcGRIQWpFTXU5dGV2NUpYbjdYc1MrTW1pUDNXMUxm
+    ... ZisKVmhQbmZaOGYvVms2eUhrVTBYN3dyK0duMERWZmtJamd0RWVuVE1RSUg4by91NTJjYzBUYTVn
+    ... PT0KLS0tLS1FTkQgUlNBIFBSSVZBVEUgS0VZLS0tLS0='''
+    ... )
+    >>> with open('kek.key', 'w') as fp:
+    ...     fp.write(kek_key)
+
+    >>> os.makedirs('dek-storage/')
+    >>> dek_key = base64.b64decode(
+    ... '''esfiaDYeNFs1e2YDB7SVhSZnPmlSjWhlun21GWLGi4FGQxlWeXI37igz8R/tpC98Ca2MBBFjTIyJ
+    ... kgWdR6GIR/hrT72EQjdY2TPCmLPuHpsxMkrvPyI+GqhNCKkk5UI4iafTnii4TDlxr3YXtjkES7oT
+    ... VlxlviRUfsFSqIp+e0BsZqp53JTaWOFFlAi+dovYwk9UUE7OS8oujtBuHGjSlbYKWhtXNTt11vB2
+    ... T7WKuFUjqvzju35sW0RuJSc94Quc53Gflxn8UdS8TDzQ1hBSjT3Kz9SIQupMvP9IENfOCy5OxSvT
+    ... sv+x88MVb0i32weBUKx4E1KWOEsqf0/CoskrNg=='''
+    ... )
+    >>> with open('dek-storage/d9ac2bd4d6bacd56a9a288cdda05f102.dek', 'w') as fp:
+    ...     fp.write(dek_key)
+
+    >>> encryption_config = '''
+    ... [encryptingstorage:encryption]
+    ... enabled = true
+    ... kek-path = kek.key
+    ... dek-storage-path = dek-storage/
+    ... '''
+    >>> with open('encryption.conf', 'w') as fp:
+    ...     fp.write(encryption_config)
+
     >>> config = '''
     ...     %import cipher.encryptingstorage
     ...     <zodb>
     ...         <encryptingstorage>
+    ...             config encryption.conf
     ...             <filestorage>
     ...                 path data.fs
     ...                 blob-dir blobs

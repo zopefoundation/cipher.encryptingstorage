@@ -15,8 +15,8 @@
 from __future__ import absolute_import
 import ConfigParser
 import os
+import shutil
 
-import M2Crypto
 import zope.component
 import zope.interface
 from keas.kmi import facility
@@ -37,6 +37,13 @@ class IEncryptionUtility(zope.interface.Interface):
     def decryptBytes(data):
         """Returns the decrypted data uses str, without utf-8 conversion"""
 
+    def encrypt_file(fsrc, fdst):
+        """Reads the plain data from fsrc and
+           writes the encrypted data to fdst."""
+
+    def decrypt_file(fsrc, fdst):
+        """Reads from fsrc and writes the encrypted data to fdst."""
+
 
 class TrivialEncryptionUtility(object):
 
@@ -51,6 +58,12 @@ class TrivialEncryptionUtility(object):
 
     def decryptBytes(self, data):
         return data
+
+    def encrypt_file(self, fsrc, fdst):
+        shutil.copyfileobj(fsrc, fdst)
+
+    def decrypt_file(self, fsrc, fdst):
+        shutil.copyfileobj(fsrc, fdst)
 
 
 class EncryptionUtility(TrivialEncryptionUtility):
@@ -72,8 +85,19 @@ class EncryptionUtility(TrivialEncryptionUtility):
     def decryptBytes(self, data):
         try:
             return self.facility.decrypt(self.key, data)
-        except M2Crypto.EVP.EVPError:
+        except ValueError:
             return data
+
+    def encrypt_file(self, fsrc, fdst):
+        return self.facility.encrypt_file(self.key, fsrc, fdst)
+
+    def decrypt_file(self, fsrc, fdst):
+        try:
+            self.facility.decrypt_file(self.key, fsrc, fdst)
+        except ValueError:
+            fsrc.seek(0)
+            fdst.seek(0)
+            shutil.copyfileobj(fsrc, fdst)
 
 
 ENCRYPTION_UTILITY = TrivialEncryptionUtility()
@@ -110,8 +134,8 @@ def init_local_facility(conf):
         # just don't provide utilities, who knows what will be defined
         # by the main app
 
-        #provideUtility(ENCRYPTION_UTILITY, IKeyHolder)
-        #provideUtility(kmf)
+        # provideUtility(ENCRYPTION_UTILITY, IKeyHolder)
+        # provideUtility(kmf)
 
     else:
         ENCRYPTION_UTILITY = TrivialEncryptionUtility()

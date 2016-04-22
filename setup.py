@@ -28,9 +28,9 @@ setup(
     author_email='zope-dev@zope.org',
     description="ZODB storage wrapper for encryption of database records",
     long_description=(
-        read('README.txt')
+        read('README.rst')
         + '\n\n' +
-        read('CHANGES.txt')
+        read('CHANGES.rst')
         ),
     license='ZPL 2.1',
 
