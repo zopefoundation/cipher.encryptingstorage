@@ -1,0 +1,7 @@
+graft src/cipher
+include *.rst
+include *.txt
+include buildout.cfg
+global-exclude *.pyc
+recursive-exclude local *
+prune packages
