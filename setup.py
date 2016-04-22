@@ -33,14 +33,14 @@ setup(
         read('CHANGES.rst')
         ),
     license='ZPL 2.1',
-
+    keywords='Python Zope encryption',
     packages=find_packages('src'),
     namespace_packages=['cipher'],
     package_dir={'': 'src'},
     install_requires=[
         'ZODB3 >=3.10.0b1',
         'setuptools',
-        'keas.kmi',
+        'keas.kmi >= 3.1.0',
         ],
     extras_require=dict(
         test=[
