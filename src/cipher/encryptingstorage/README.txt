@@ -25,7 +25,7 @@ constructed by passing another storage, as in::
 
     >>> exec src
     >>> data = 'x' * 100
-    >>> storage.transform_record_data(data).startswith('.e')
+    >>> storage.transform_record_data(data).startswith(b'.e')
     True
     >>> storage.close()
 
@@ -45,7 +45,7 @@ When using a ZODB configuration file, the encryptingstorage tag is used::
 
     >>> import ZODB.config
     >>> db = ZODB.config.databaseFromString(src)
-    >>> db.storage.transform_record_data(data).startswith('.e')
+    >>> db.storage.transform_record_data(data).startswith(b'.e')
     True
     >>> db.close()
 
@@ -78,7 +78,7 @@ server configuration file::
     >>> src = src[:src.find('<zeo>')]+src[src.find('</zeo>')+7:]
 
     >>> storage = ZODB.config.storageFromString(src)
-    >>> storage.transform_record_data(data).startswith('.e')
+    >>> storage.transform_record_data(data).startswith(b'.e')
     True
     >>> storage.__class__.__name__
     'ServerEncryptingStorage'
@@ -176,7 +176,7 @@ from an decrypted database to a encrypted one, as in::
 
     >>> import ZODB.utils
     >>> for i in range(3):
-    ...     if not new.base.load(ZODB.utils.p64(i))[0][:2] == '.e':
+    ...     if not new.base.load(ZODB.utils.p64(i))[0][:2] == b'.e':
     ...         print 'oops', i
     >>> len(new)
     3
@@ -200,7 +200,7 @@ to decrypt and decrypt data records are available as
 ``encrypt(data)``
   Encrypt the given data if:
 
-    - it doesn't start with the encrypted-record marker, ``'.e'``
+    - it doesn't start with the encrypted-record marker, ``b'.e'``
 
   The encrypted data are returned.
 

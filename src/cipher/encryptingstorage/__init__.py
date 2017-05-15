@@ -147,10 +147,10 @@ class EncryptingStorage(object):
         """
         return self.db.invalidateCache()
 
-    def invalidate(self, transaction_id, oids, version=''):
+    def invalidate(self, transaction_id, oids):
         """ For IStorageWrapper
         """
-        return self.db.invalidate(transaction_id, oids, version)
+        return self.db.invalidate(transaction_id, oids)
 
     def references(self, record, oids=None):
         """ For IStorageWrapper
@@ -176,20 +176,20 @@ class EncryptingStorage(object):
 
 
 def compress(data):
-    if data and (len(data) > 20) and data[:2] != '.z':
-        compressed = '.z'+zlib.compress(data)
+    if data and (len(data) > 20) and data[:2] != b'.z':
+        compressed = b'.z'+zlib.compress(data)
         if len(compressed) < len(data):
             return compressed
     return data
 
 
 def decompress(data):
-    return data[:2] == '.z' and zlib.decompress(data[2:]) or data
+    return data[:2] == b'.z' and zlib.decompress(data[2:]) or data
 
 
 def encrypt(data):
     try:
-        if data[:2] == '.e':
+        if data[:2] == b'.e':
             return data
     except TypeError:
         # a ZODB test passes None as data, be forgiving about that
@@ -200,12 +200,12 @@ def encrypt(data):
 
     # 2. encrypt here!!!
     data = encrypt_util.ENCRYPTION_UTILITY.encryptBytes(data)
-    return '.e'+data
+    return b'.e'+data
 
 
 def decrypt(data):
     try:
-        if data[:2] != '.e':
+        if data[:2] != b'.e':
             # not an encrypted record, return as is
             return data
     except TypeError:
@@ -228,7 +228,7 @@ def encrypt_file(filename):
     tmp_file = filename + '.enc'
     with open(filename, 'rb') as fsrc:
         with open(tmp_file, 'wb') as fdst:
-            fdst.write('.e')
+            fdst.write(b'.e')
             encrypt_util.ENCRYPTION_UTILITY.encrypt_file(fsrc, fdst)
 
     os.remove(filename)
@@ -269,7 +269,7 @@ def decrypt_file(filename, blob_dir):
 
     with open(filename, 'rb') as fsrc:
         header = str(fsrc.read(2))
-        if header != '.e':
+        if header != b'.e':
             # File isn't encrypted
             fsrc.seek(0)
             with open(tmp_filename, 'wb') as fdst:

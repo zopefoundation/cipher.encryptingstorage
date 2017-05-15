@@ -128,7 +128,7 @@ After putting some data in, the records will be encrypted:
     >>> for t in ZODB.FileStorage.FileIterator('data.fs'):
     ...     for r in t:
     ...         data = r.data
-    ...         if r.data[:2] != '.e':
+    ...         if r.data[:2] != b'.e':
     ...             print 'oops', `r.oid`
     """
 
@@ -250,7 +250,7 @@ open it as a file storage and inspect the record for object 0:
 
     >>> storage = ZODB.FileStorage.FileStorage('data.fs')
     >>> data, _ = storage.load('\0'*8)
-    >>> data[:2] == '.e'
+    >>> data[:2] == b'.e'
     True
 
 Records that we didn't modify remain unencrypted
@@ -374,7 +374,7 @@ def dont_double_encrypt():
     So this test is actually testing that we don't encrypt strings
     that start with the encrypted marker.
 
-    >>> data = '.e'+'x'*80
+    >>> data = b'.e'+'x'*80
     >>> store = cipher.encryptingstorage.EncryptingStorage(ZODB.MappingStorage.MappingStorage())
     >>> store._transform(data) == data
     True

@@ -13,7 +13,11 @@
 ##############################################################################
 
 from __future__ import absolute_import
-import ConfigParser
+try:
+    from ConfigParser import RawConfigParser
+except ImportError:
+    # PY3
+    from configparser import RawConfigParser
 import os
 import shutil
 
@@ -66,8 +70,8 @@ class TrivialEncryptionUtility(object):
         shutil.copyfileobj(fsrc, fdst)
 
 
+zope.interface.implementer(IEncryptionUtility, IKeyHolder)
 class EncryptionUtility(TrivialEncryptionUtility):
-    zope.interface.implements(IEncryptionUtility, IKeyHolder)
 
     def __init__(self, kek_path, facility):
         self.facility = facility
@@ -104,7 +108,7 @@ ENCRYPTION_UTILITY = TrivialEncryptionUtility()
 
 
 def init_local_facility(conf):
-    config = ConfigParser.RawConfigParser()
+    config = RawConfigParser()
     config.readfp(open(conf['__file__'], 'r'))
 
     global ENCRYPTION_UTILITY
