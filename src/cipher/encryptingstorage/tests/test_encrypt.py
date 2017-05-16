@@ -48,7 +48,7 @@ def doctest_EncryptionUtility():
 
       >>> util.decrypt(data) == u'test'
       True
-      >>> util.decrypt('bad') == u'bad'
+      >>> util.decrypt(b'bad') == u'bad'
       True
 
       >>> shutil.rmtree(storage_dir)
