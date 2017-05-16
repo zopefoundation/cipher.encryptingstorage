@@ -268,7 +268,7 @@ def decrypt_file(filename, blob_dir):
         os.makedirs(new_tmp_dir, 0o700)
 
     with open(filename, 'rb') as fsrc:
-        header = str(fsrc.read(2))
+        header = fsrc.read(2)
         if header != b'.e':
             # File isn't encrypted
             fsrc.seek(0)
