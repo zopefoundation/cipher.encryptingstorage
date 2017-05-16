@@ -23,8 +23,8 @@ constructed by passing another storage, as in::
 
 .. -> src
 
-    >>> exec src
-    >>> data = 'x' * 100
+    >>> exec(src)
+    >>> data = b'x' * 100
     >>> storage.transform_record_data(data).startswith(b'.e')
     True
     >>> storage.close()
@@ -106,7 +106,7 @@ records if they are encountered. Here's an example from in Python::
 
 .. -> src
 
-    >>> exec src
+    >>> exec(src)
     >>> storage.transform_record_data(data) == data
     True
     >>> storage.close()
@@ -175,9 +175,10 @@ from an decrypted database to a encrypted one, as in::
     True
 
     >>> import ZODB.utils
+    >>> from __future__ import print_function
     >>> for i in range(3):
     ...     if not new.base.load(ZODB.utils.p64(i))[0][:2] == b'.e':
-    ...         print 'oops', i
+    ...         print('oops', i)
     >>> len(new)
     3
 

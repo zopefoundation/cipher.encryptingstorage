@@ -46,10 +46,10 @@ def doctest_EncryptionUtility():
 
     Decrypt text:
 
-      >>> util.decrypt(data)
-      u'test'
-      >>> util.decrypt('bad')
-      u'bad'
+      >>> util.decrypt(data) == u'test'
+      True
+      >>> util.decrypt('bad') == u'bad'
+      True
 
       >>> shutil.rmtree(storage_dir)
     """
@@ -61,7 +61,7 @@ def doctest_init_local_facility():
 
       >>> conf_path = tempfile.mktemp()
       >>> with open(conf_path, 'w') as f:
-      ...     f.write('''
+      ...     pos = f.write('''
       ... [encryptingstorage:encryption]
       ... enabled = false
       ... ''')
@@ -76,7 +76,7 @@ def doctest_init_local_facility():
       >>> kek_path = tempfile.mktemp()
 
       >>> with open(conf_path, 'w') as f:
-      ...     f.write('''
+      ...     pos = f.write('''
       ... [encryptingstorage:encryption]
       ... enabled = true
       ... kek-path = %s
@@ -98,7 +98,7 @@ def doctest_init_local_facility():
       >>> kek_path = tempfile.mktemp()
 
       >>> with open(conf_path, 'w') as f:
-      ...     f.write('''
+      ...     pos = f.write('''
       ... [encryptingstorage:encryption]
       ... enabled = true
       ... kek-path = %s
@@ -120,7 +120,7 @@ def doctest_init_local_facility():
 def setUp(test):
     setup.placelessSetUp(test)
     test.generate = facility.LocalKeyManagementFacility.generate
-    facility.LocalKeyManagementFacility.generate = lambda s: 'foo'
+    facility.LocalKeyManagementFacility.generate = lambda s: b'foo'
 
 def tearDown(test):
     facility.LocalKeyManagementFacility.generate = test.generate

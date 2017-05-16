@@ -11,9 +11,12 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
+from __future__ import print_function
+
 from zope.testing import setupstack
 
 import base64
+from binascii import hexlify, unhexlify
 import cipher.encryptingstorage
 import doctest
 import os
@@ -70,8 +73,8 @@ encryptingstorage tag:
     ... ZisKVmhQbmZaOGYvVms2eUhrVTBYN3dyK0duMERWZmtJamd0RWVuVE1RSUg4by91NTJjYzBUYTVn
     ... PT0KLS0tLS1FTkQgUlNBIFBSSVZBVEUgS0VZLS0tLS0='''
     ... )
-    >>> with open('kek.key', 'w') as fp:
-    ...     fp.write(kek_key)
+    >>> with open('kek.key', 'wb') as fp:
+    ...     pos = fp.write(kek_key)
 
     >>> os.makedirs('dek-storage/')
     >>> dek_key = base64.b64decode(
@@ -81,8 +84,8 @@ encryptingstorage tag:
     ... T7WKuFUjqvzju35sW0RuJSc94Quc53Gflxn8UdS8TDzQ1hBSjT3Kz9SIQupMvP9IENfOCy5OxSvT
     ... sv+x88MVb0i32weBUKx4E1KWOEsqf0/CoskrNg=='''
     ... )
-    >>> with open('dek-storage/d9ac2bd4d6bacd56a9a288cdda05f102.dek', 'w') as fp:
-    ...     fp.write(dek_key)
+    >>> with open('dek-storage/d9ac2bd4d6bacd56a9a288cdda05f102.dek', 'wb') as fp:
+    ...     pos = fp.write(dek_key)
 
     >>> encryption_config = '''
     ... [encryptingstorage:encryption]
@@ -91,7 +94,7 @@ encryptingstorage tag:
     ... dek-storage-path = dek-storage/
     ... '''
     >>> with open('encryption.conf', 'w') as fp:
-    ...     fp.write(encryption_config)
+    ...     pos = fp.write(encryption_config)
 
     >>> config = '''
     ...     %import cipher.encryptingstorage
@@ -110,7 +113,7 @@ encryptingstorage tag:
     >>> conn = db.open()
     >>> conn.root()['a'] = 1
     >>> transaction.commit()
-    >>> conn.root()['b'] = ZODB.blob.Blob('Hi\nworld.\n')
+    >>> conn.root()['b'] = ZODB.blob.Blob(b'Hi\nworld.\n')
     >>> transaction.commit()
 
     >>> db.close()
@@ -119,8 +122,8 @@ encryptingstorage tag:
     >>> conn = db.open()
     >>> conn.root()['a']
     1
-    >>> conn.root()['b'].open().read()
-    'Hi\nworld.\n'
+    >>> conn.root()['b'].open().read() == b'Hi\nworld.\n'
+    True
     >>> db.close()
 
 After putting some data in, the records will be encrypted:
@@ -129,7 +132,7 @@ After putting some data in, the records will be encrypted:
     ...     for r in t:
     ...         data = r.data
     ...         if r.data[:2] != b'.e':
-    ...             print 'oops', `r.oid`
+    ...             print('oops', repr(r.oid))
     """
 
 def test_config_no_encrypt():
@@ -154,7 +157,7 @@ You can disable encryption.
     >>> conn = db.open()
     >>> conn.root()['a'] = 1
     >>> transaction.commit()
-    >>> conn.root()['b'] = ZODB.blob.Blob('Hi\nworld.\n')
+    >>> conn.root()['b'] = ZODB.blob.Blob(b'Hi\nworld.\n')
     >>> transaction.commit()
 
     >>> db.close()
@@ -165,8 +168,8 @@ Since we didn't encrypt, we can open the storage using a plain file storage:
     >>> conn = db.open()
     >>> conn.root()['a']
     1
-    >>> conn.root()['b'].open().read()
-    'Hi\nworld.\n'
+    >>> conn.root()['b'].open().read() == b'Hi\nworld.\n'
+    True
     >>> db.close()
     """
 
@@ -180,7 +183,7 @@ Create a sample config:
     >>> import tempfile
     >>> conf_path = tempfile.mktemp()
     >>> with open(conf_path, 'w') as f:
-    ...     f.write('''
+    ...     pos = f.write('''
     ... [cipher:encryption]
     ... enabled = false
     ... ''')
@@ -226,7 +229,7 @@ First, we'll create an existing file storage:
     >>> conn = db.open()
     >>> conn.root.a = 1
     >>> transaction.commit()
-    >>> conn.root.b = ZODB.blob.Blob('Hi\nworld.\n')
+    >>> conn.root.b = ZODB.blob.Blob(b'Hi\nworld.\n')
     >>> transaction.commit()
     >>> conn.root.c = conn.root().__class__((i,i) for i in range(100))
     >>> transaction.commit()
@@ -239,9 +242,9 @@ Now let's open the database encrypted:
     >>> conn = db.open()
     >>> conn.root()['a']
     1
-    >>> conn.root()['b'].open().read()
-    'Hi\nworld.\n'
-    >>> conn.root()['b'] = ZODB.blob.Blob('Hello\nworld.\n')
+    >>> conn.root()['b'].open().read() == b'Hi\nworld.\n'
+    True
+    >>> conn.root()['b'] = ZODB.blob.Blob(b'Hello\nworld.\n')
     >>> transaction.commit()
     >>> db.close()
 
@@ -249,14 +252,14 @@ Having updated the root, it is now encrypted.  To see this, we'll
 open it as a file storage and inspect the record for object 0:
 
     >>> storage = ZODB.FileStorage.FileStorage('data.fs')
-    >>> data, _ = storage.load('\0'*8)
+    >>> data, _ = storage.load(b'\0'*8)
     >>> data[:2] == b'.e'
     True
 
 Records that we didn't modify remain unencrypted
 
-    >>> storage.load('\0'*7+'\2')[0] # doctest: +ELLIPSIS
-    'cpersistent.mapping\nPersistentMapping...
+    >>> b'cpersistent.mapping\nPersistentMapping' in storage.load(b'\0'*7+b'\2')[0]
+    True
 
 
     >>> storage.close()
@@ -265,7 +268,7 @@ Let's try packing the file 4 ways:
 
 - using the encrypted storage:
 
-    >>> open('data.fs.save', 'wb').write(open('data.fs', 'rb').read())
+    >>> pos = open('data.fs.save', 'wb').write(open('data.fs', 'rb').read())
     >>> db = ZODB.DB(cipher.encryptingstorage.EncryptingStorage(
     ...     ZODB.FileStorage.FileStorage('data.fs', blob_dir='blobs')))
     >>> db.pack()
@@ -275,7 +278,7 @@ Let's try packing the file 4 ways:
 
 - using the storage in non-encrypt mode:
 
-    >>> open('data.fs', 'wb').write(open('data.fs.save', 'rb').read())
+    >>> pos = open('data.fs', 'wb').write(open('data.fs.save', 'rb').read())
     >>> db = ZODB.DB(cipher.encryptingstorage.EncryptingStorage(
     ...     ZODB.FileStorage.FileStorage('data.fs', blob_dir='blobs'),
     ...     encrypt=False))
@@ -287,7 +290,7 @@ Let's try packing the file 4 ways:
 
 - using the server storage:
 
-    >>> open('data.fs', 'wb').write(open('data.fs.save', 'rb').read())
+    >>> pos = open('data.fs', 'wb').write(open('data.fs.save', 'rb').read())
     >>> db = ZODB.DB(cipher.encryptingstorage.ServerEncryptingStorage(
     ...     ZODB.FileStorage.FileStorage('data.fs', blob_dir='blobs'),
     ...     encrypt=False))
@@ -299,7 +302,7 @@ Let's try packing the file 4 ways:
 
 - using the server storage in non-encrypted mode:
 
-    >>> open('data.fs', 'wb').write(open('data.fs.save', 'rb').read())
+    >>> pos = open('data.fs', 'wb').write(open('data.fs.save', 'rb').read())
     >>> db = ZODB.DB(cipher.encryptingstorage.ServerEncryptingStorage(
     ...     ZODB.FileStorage.FileStorage('data.fs', blob_dir='blobs'),
     ...     encrypt=False))
@@ -313,22 +316,22 @@ Let's try packing the file 4 ways:
 class Dummy:
 
     def invalidateCache(self):
-        print 'invalidateCache called'
+        print('invalidateCache called')
 
     def invalidate(self, *args):
-        print 'invalidate', args
+        print('invalidate', args)
 
     def references(self, record, oids=None):
         if oids is None:
             oids = []
-        oids.extend(record.decode('hex').split())
+        oids.extend(unhexlify(record).split())
         return oids
 
     def transform_record_data(self, data):
-        return data.encode('hex')
+        return hexlify(data)
 
     def untransform_record_data(self, data):
-        return data.decode('hex')
+        return unhexlify(data)
 
 
 def test_wrapping():
@@ -343,26 +346,26 @@ Make sure the wrapping methods do what's expected.
     >>> s.invalidateCache()
     invalidateCache called
 
-    >>> s.invalidate('1', range(3), '')
+    >>> s.invalidate('1', list(range(3)), '')
     invalidate ('1', [0, 1, 2], '')
 
-    >>> data = ' '.join(map(str, range(9)))
+    >>> data = b'0 1 2 3 4 5 6 7 8'
     >>> transformed = s.transform_record_data(data)
-    >>> transformed
-    '.e.zx\x9c360206\x04b# 6\x06b\x13 6\x05b3 6\x07b\x0b\x00t,\x06\xb0'
+    >>> transformed == b'.e.zx\x9c360206\x04b# 6\x06b\x13 6\x05b3 6\x07b\x0b\x00t,\x06\xb0'
+    True
 
     >>> s.untransform_record_data(transformed) == data
     True
 
-    >>> s.references(transformed)
-    ['0', '1', '2', '3', '4', '5', '6', '7', '8']
+    >>> s.references(transformed) == [b'0', b'1', b'2', b'3', b'4', b'5', b'6', b'7', b'8']
+    True
 
-    >>> l = range(3)
-    >>> s.references(transformed, l)
-    [0, 1, 2, '0', '1', '2', '3', '4', '5', '6', '7', '8']
+    >>> l = list(range(3))
+    >>> s.references(transformed, l) == [0, 1, 2, b'0', b'1', b'2', b'3', b'4', b'5', b'6', b'7', b'8']
+    True
 
-    >>> l
-    [0, 1, 2, '0', '1', '2', '3', '4', '5', '6', '7', '8']
+    >>> l == [0, 1, 2, b'0', b'1', b'2', b'3', b'4', b'5', b'6', b'7', b'8']
+    True
 
     """
 
@@ -374,7 +377,7 @@ def dont_double_encrypt():
     So this test is actually testing that we don't encrypt strings
     that start with the encrypted marker.
 
-    >>> data = b'.e'+'x'*80
+    >>> data = b'.e'+b'x'*80
     >>> store = cipher.encryptingstorage.EncryptingStorage(ZODB.MappingStorage.MappingStorage())
     >>> store._transform(data) == data
     True
