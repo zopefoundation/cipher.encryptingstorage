@@ -147,10 +147,10 @@ class EncryptingStorage(object):
         """
         return self.db.invalidateCache()
 
-    def invalidate(self, transaction_id, oids):
+    def invalidate(self, transaction_id, oids, version=''):  # the version arg is still present in ZODB 4.3.1, but is removed in ZODB 5.2.3
         """ For IStorageWrapper
         """
-        return self.db.invalidate(transaction_id, oids)
+        return self.db.invalidate(transaction_id, oids, version)
 
     def references(self, record, oids=None):
         """ For IStorageWrapper
