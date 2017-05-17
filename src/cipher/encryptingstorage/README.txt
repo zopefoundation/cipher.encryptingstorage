@@ -1,6 +1,6 @@
-=============================================================
+=======================================================
 ZODB storage wrapper for encryption of database records
-=============================================================
+=======================================================
 
 Idea and quite a lot of code taken from zc.zlibstorage.
 
@@ -91,7 +91,7 @@ server, you also reduce the size of records sent from the server to the
 client and the size of records stored in the client's ZEO cache.
 
 Decrypting only
-==================
+===============
 
 By default, records are encrypted when written to the storage and
 decrypted when read from the storage.  An ``encrypt`` option can be
@@ -140,7 +140,7 @@ which point, all of the clients will be able to read the encrypted
 records produced.
 
 Encrypting entire databases
-============================
+===========================
 
 One way to encrypt all of the records in a database is to copy data
 from an decrypted database to a encrypted one, as in::
@@ -191,7 +191,7 @@ Encrypted records have a prefix of ".e".  This allows a database to
 have a mix of encrypted and not encrypted records.
 
 Stand-alone encryption and decryption functions
-===================================================
+===============================================
 
 In anticipation of wanting to plug the encryption and decryption
 logic into other tools without creating storages, the functions used
