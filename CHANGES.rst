@@ -5,7 +5,7 @@ CHANGES
 1.1.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add Python 3.4, 3.5, 3.6 compatibility.
 
 
 1.1 (2016-04-22)

@@ -1,6 +1,6 @@
-=============================================================
+=======================================================
 ZODB storage wrapper for encryption of database records
-=============================================================
+=======================================================
 
 Idea and quite a lot of code taken from zc.zlibstorage.
 
@@ -23,9 +23,9 @@ constructed by passing another storage, as in::
 
 .. -> src
 
-    >>> exec src
-    >>> data = 'x' * 100
-    >>> storage.transform_record_data(data).startswith('.e')
+    >>> exec(src)
+    >>> data = b'x' * 100
+    >>> storage.transform_record_data(data).startswith(b'.e')
     True
     >>> storage.close()
 
@@ -45,7 +45,7 @@ When using a ZODB configuration file, the encryptingstorage tag is used::
 
     >>> import ZODB.config
     >>> db = ZODB.config.databaseFromString(src)
-    >>> db.storage.transform_record_data(data).startswith('.e')
+    >>> db.storage.transform_record_data(data).startswith(b'.e')
     True
     >>> db.close()
 
@@ -78,7 +78,7 @@ server configuration file::
     >>> src = src[:src.find('<zeo>')]+src[src.find('</zeo>')+7:]
 
     >>> storage = ZODB.config.storageFromString(src)
-    >>> storage.transform_record_data(data).startswith('.e')
+    >>> storage.transform_record_data(data).startswith(b'.e')
     True
     >>> storage.__class__.__name__
     'ServerEncryptingStorage'
@@ -91,7 +91,7 @@ server, you also reduce the size of records sent from the server to the
 client and the size of records stored in the client's ZEO cache.
 
 Decrypting only
-==================
+===============
 
 By default, records are encrypted when written to the storage and
 decrypted when read from the storage.  An ``encrypt`` option can be
@@ -106,7 +106,7 @@ records if they are encountered. Here's an example from in Python::
 
 .. -> src
 
-    >>> exec src
+    >>> exec(src)
     >>> storage.transform_record_data(data) == data
     True
     >>> storage.close()
@@ -140,7 +140,7 @@ which point, all of the clients will be able to read the encrypted
 records produced.
 
 Encrypting entire databases
-============================
+===========================
 
 One way to encrypt all of the records in a database is to copy data
 from an decrypted database to a encrypted one, as in::
@@ -175,9 +175,10 @@ from an decrypted database to a encrypted one, as in::
     True
 
     >>> import ZODB.utils
+    >>> from __future__ import print_function
     >>> for i in range(3):
-    ...     if not new.base.load(ZODB.utils.p64(i))[0][:2] == '.e':
-    ...         print 'oops', i
+    ...     if not new.base.load(ZODB.utils.p64(i))[0][:2] == b'.e':
+    ...         print('oops', i)
     >>> len(new)
     3
 
@@ -190,7 +191,7 @@ Encrypted records have a prefix of ".e".  This allows a database to
 have a mix of encrypted and not encrypted records.
 
 Stand-alone encryption and decryption functions
-===================================================
+===============================================
 
 In anticipation of wanting to plug the encryption and decryption
 logic into other tools without creating storages, the functions used
@@ -200,7 +201,7 @@ to decrypt and decrypt data records are available as
 ``encrypt(data)``
   Encrypt the given data if:
 
-    - it doesn't start with the encrypted-record marker, ``'.e'``
+    - it doesn't start with the encrypted-record marker, ``b'.e'``
 
   The encrypted data are returned.
 

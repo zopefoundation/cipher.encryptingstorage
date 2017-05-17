@@ -16,11 +16,9 @@ Follow https://pypi.python.org/pypi/keas.kmi to generate a kek.dat file::
     $ ./bin/buildout
     $ ./bin/runserver &
 
-    $ wget https://localhost:8080/new -O kek.dat --ca-certificate sample.pem \
+    $ wget https://localhost:8080/new -O kek.dat --ca-certificate sample.crt \
             --post-data=""
 
-    $ wget https://localhost:8080/key --header 'Content-Type: text/plain' \
-         --post-file kek.dat -O datakey.dat --ca-certificate sample.pem
 
 Now copy `kek.dat` and the `keys` folder to your plone site::
 
@@ -34,6 +32,9 @@ Then create a `encryption.conf` like this in your buildout directory::
     enabled = true
     kek-path = /home/yourname/Plone/training/var/kek.dat
     dek-storage-path = /home/yourname/Plone/training/var/dek-storage/
+
+You can use the "`kmi-server = https://kmi.example.com`" option instead of
+`dek-storage-path` if you don't want to copy the `keys` folder.
 
 Then edit buildout.cfg and add `cipher.encryptingstorage` to your eggs::
 
@@ -77,6 +78,13 @@ Remove the generated <zodb_db main> entry in `parts/instance/etc/zope.conf`::
         </blobstorage>
         mount-point /
     </zodb_db>
+
+
+Converting an existing filestorage
+==================================
+
+If you have a ZEO setup with Plone and want to encrypt an existing filestorage,
+follow the article `Encrypt your Plone Database <http://webmeisterei.com/news/encrypt-your-plone-database>`__
 
 
 Run the tests/develop
