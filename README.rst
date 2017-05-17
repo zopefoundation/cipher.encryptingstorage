@@ -33,6 +33,9 @@ Then create a `encryption.conf` like this in your buildout directory::
     kek-path = /home/yourname/Plone/training/var/kek.dat
     dek-storage-path = /home/yourname/Plone/training/var/dek-storage/
 
+You can use the "`kmi-server = https://kmi.example.com`" option instead of
+`dek-storage-path` if you don't want to copy the `keys` folder.
+
 Then edit buildout.cfg and add `cipher.encryptingstorage` to your eggs::
 
     eggs +=
@@ -75,6 +78,13 @@ Remove the generated <zodb_db main> entry in `parts/instance/etc/zope.conf`::
         </blobstorage>
         mount-point /
     </zodb_db>
+
+
+Converting an existing filestorage
+==================================
+
+If you have a ZEO setup with Plone and want to encrypt an existing filestorage,
+follow the article `Encrypt your Plone Database <http://webmeisterei.com/news/encrypt-your-plone-database>`__
 
 
 Run the tests/develop
