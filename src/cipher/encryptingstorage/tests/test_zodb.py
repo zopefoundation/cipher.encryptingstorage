@@ -31,6 +31,7 @@ import ZODB.MappingStorage
 import ZODB.tests.StorageTestBase
 import ZODB.tests.testFileStorage
 import ZODB.utils
+import ZODB.tests.util
 import zope.interface.verify
 
 class TestIterator(unittest.TestCase):
@@ -166,6 +167,7 @@ encryptingstorage tag:
     >>> conn.root()['b'] = ZODB.blob.Blob(b'Hi\nworld.\n')
     >>> transaction.commit()
 
+    >>> conn.close()
     >>> db.close()
 
     >>> db = ZODB.config.databaseFromString(config)
@@ -174,6 +176,7 @@ encryptingstorage tag:
     1
     >>> conn.root()['b'].open().read() == b'Hi\nworld.\n'
     True
+    >>> conn.close()
     >>> db.close()
 
 After putting some data in, the records will be encrypted:
@@ -210,6 +213,7 @@ You can disable encryption.
     >>> conn.root()['b'] = ZODB.blob.Blob(b'Hi\nworld.\n')
     >>> transaction.commit()
 
+    >>> conn.close()
     >>> db.close()
 
 Since we didn't encrypt, we can open the storage using a plain file storage:
@@ -220,6 +224,7 @@ Since we didn't encrypt, we can open the storage using a plain file storage:
     1
     >>> conn.root()['b'].open().read() == b'Hi\nworld.\n'
     True
+    >>> conn.close()
     >>> db.close()
     """
 
@@ -283,6 +288,7 @@ First, we'll create an existing file storage:
     >>> transaction.commit()
     >>> conn.root.c = conn.root().__class__((i,i) for i in range(100))
     >>> transaction.commit()
+    >>> conn.close()
     >>> db.close()
 
 Now let's open the database encrypted:
@@ -296,6 +302,7 @@ Now let's open the database encrypted:
     True
     >>> conn.root()['b'] = ZODB.blob.Blob(b'Hello\nworld.\n')
     >>> transaction.commit()
+    >>> conn.close()
     >>> db.close()
 
 Having updated the root, it is now encrypted.  To see this, we'll
@@ -318,7 +325,9 @@ Let's try packing the file 4 ways:
 
 - using the encrypted storage:
 
-    >>> pos = open('data.fs.save', 'wb').write(open('data.fs', 'rb').read())
+    >>> with open('data.fs', 'rb') as source:
+    ...     with open('data.fs.save', 'wb') as target:
+    ...         pos = target.write(source.read())
     >>> db = ZODB.DB(cipher.encryptingstorage.EncryptingStorage(
     ...     ZODB.FileStorage.FileStorage('data.fs', blob_dir='blobs')))
     >>> db.pack()
@@ -328,7 +337,9 @@ Let's try packing the file 4 ways:
 
 - using the storage in non-encrypt mode:
 
-    >>> pos = open('data.fs', 'wb').write(open('data.fs.save', 'rb').read())
+    >>> with open('data.fs.save', 'rb') as source:
+    ...     with open('data.fs', 'wb') as target:
+    ...         pos = target.write(source.read())
     >>> db = ZODB.DB(cipher.encryptingstorage.EncryptingStorage(
     ...     ZODB.FileStorage.FileStorage('data.fs', blob_dir='blobs'),
     ...     encrypt=False))
@@ -528,6 +539,6 @@ def test_suite():
 
     suite.addTest(unittest.makeSuite(TestIterator))
     suite.addTest(doctest.DocTestSuite(
-        setUp=setupstack.setUpDirectory, tearDown=setupstack.tearDown
+        setUp=setupstack.setUpDirectory, tearDown=ZODB.tests.util.tearDown
         ))
     return suite
