@@ -5,8 +5,8 @@ python:
     - 3.5
     - 3.6
 install:
-    - virtualenv .
-    - bin/pip install -r requirements.txt
+    - pip install -r requirements.txt
+    - buildout bootstrap
     - bin/buildout
 script:
     - bin/test -v1
