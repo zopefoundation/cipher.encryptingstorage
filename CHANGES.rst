@@ -5,6 +5,9 @@ CHANGES
 1.1.1 (unreleased)
 ------------------
 
+- Close the underlying iterator used by the iterator wrapper when it is closed.
+  (https://github.com/zopefoundation/zc.zlibstorage/issues/4)
+
 - Add Python 3.4, 3.5, 3.6 compatibility.
 
 

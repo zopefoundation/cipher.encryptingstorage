@@ -118,8 +118,7 @@ class EncryptingStorage(object):
         return decrypt_file(filename, self.fshelper.base_dir)
 
     def iterator(self, start=None, stop=None):
-        for t in self.base.iterator(start, stop):
-            yield Transaction(t)
+        return _Iterator(self.base.iterator(start, stop))
 
     def storeBlob(self, oid, oldserial, data, blobfilename, version,
                   transaction):
@@ -293,6 +292,36 @@ class ServerEncryptingStorage(EncryptingStorage):
         'load', 'loadBefore', 'loadSerial', 'store', 'restore',
         'iterator', 'storeBlob', 'restoreBlob', 'record_iternext',
         )
+
+
+class _Iterator(object):
+    # A class that allows for proper closing of the underlying iterator
+    # as well as avoiding any GC issues.
+    # (https://github.com/zopefoundation/zc.zlibstorage/issues/4)
+
+    def __init__(self, base_it):
+        self._base_it = base_it
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        return Transaction(next(self._base_it))
+
+    next = __next__
+
+    def close(self):
+        try:
+            base_close = self._base_it.close
+        except AttributeError:
+            pass
+        else:
+            base_close()
+        finally:
+            self._base_it = iter(())
+
+    def __getattr__(self, name):
+        return getattr(self._base_it, name)
 
 
 class Transaction(object):

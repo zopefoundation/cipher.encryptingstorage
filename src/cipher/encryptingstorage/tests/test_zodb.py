@@ -33,6 +33,56 @@ import ZODB.tests.testFileStorage
 import ZODB.utils
 import zope.interface.verify
 
+class TestIterator(unittest.TestCase):
+
+    def test_iterator_closes_underlying_explicitly(self):
+        # https://github.com/zopefoundation/zc.zlibstorage/issues/4
+
+        class Storage(object):
+
+            storage_value = 42
+            iterator_closed = False
+
+            def registerDB(self, db):
+                pass
+
+            def iterator(self, start=None, stop=None):
+                return self
+
+            def __iter__(self):
+                return self
+
+            def __next__(self):
+                return self
+
+            next = __next__
+
+            def close(self):
+                self.iterator_closed = True
+
+        storage = Storage()
+        zstorage = cipher.encryptingstorage.EncryptingStorage(storage)
+
+        it = zstorage.iterator()
+
+        # Make sure it proxies all attributes
+        self.assertEqual(42, getattr(it, 'storage_value'))
+
+        # Make sure it iterates (whose objects also proxy)
+        self.assertEqual(42, getattr(next(it), 'storage_value'))
+
+        # The real iterator is closed
+        it.close()
+
+        self.assertTrue(storage.iterator_closed)
+
+        # And we can't move on; the wrapper prevents it even though
+        # the underlying storage implementation is broken
+        self.assertRaises(StopIteration, next, it)
+
+        # We can keep closing it though
+        it.close()
+
 
 def test_config():
     r"""
@@ -476,6 +526,7 @@ def test_suite():
             'encryptingstoragetests.%s' % class_.__name__)
         suite.addTest(s)
 
+    suite.addTest(unittest.makeSuite(TestIterator))
     suite.addTest(doctest.DocTestSuite(
         setUp=setupstack.setUpDirectory, tearDown=setupstack.tearDown
         ))
