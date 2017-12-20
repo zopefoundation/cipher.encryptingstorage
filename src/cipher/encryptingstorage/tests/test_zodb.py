@@ -31,7 +31,58 @@ import ZODB.MappingStorage
 import ZODB.tests.StorageTestBase
 import ZODB.tests.testFileStorage
 import ZODB.utils
+import ZODB.tests.util
 import zope.interface.verify
+
+class TestIterator(unittest.TestCase):
+
+    def test_iterator_closes_underlying_explicitly(self):
+        # https://github.com/zopefoundation/zc.zlibstorage/issues/4
+
+        class Storage(object):
+
+            storage_value = 42
+            iterator_closed = False
+
+            def registerDB(self, db):
+                pass
+
+            def iterator(self, start=None, stop=None):
+                return self
+
+            def __iter__(self):
+                return self
+
+            def __next__(self):
+                return self
+
+            next = __next__
+
+            def close(self):
+                self.iterator_closed = True
+
+        storage = Storage()
+        zstorage = cipher.encryptingstorage.EncryptingStorage(storage)
+
+        it = zstorage.iterator()
+
+        # Make sure it proxies all attributes
+        self.assertEqual(42, getattr(it, 'storage_value'))
+
+        # Make sure it iterates (whose objects also proxy)
+        self.assertEqual(42, getattr(next(it), 'storage_value'))
+
+        # The real iterator is closed
+        it.close()
+
+        self.assertTrue(storage.iterator_closed)
+
+        # And we can't move on; the wrapper prevents it even though
+        # the underlying storage implementation is broken
+        self.assertRaises(StopIteration, next, it)
+
+        # We can keep closing it though
+        it.close()
 
 
 def test_config():
@@ -116,6 +167,7 @@ encryptingstorage tag:
     >>> conn.root()['b'] = ZODB.blob.Blob(b'Hi\nworld.\n')
     >>> transaction.commit()
 
+    >>> conn.close()
     >>> db.close()
 
     >>> db = ZODB.config.databaseFromString(config)
@@ -124,6 +176,7 @@ encryptingstorage tag:
     1
     >>> conn.root()['b'].open().read() == b'Hi\nworld.\n'
     True
+    >>> conn.close()
     >>> db.close()
 
 After putting some data in, the records will be encrypted:
@@ -160,6 +213,7 @@ You can disable encryption.
     >>> conn.root()['b'] = ZODB.blob.Blob(b'Hi\nworld.\n')
     >>> transaction.commit()
 
+    >>> conn.close()
     >>> db.close()
 
 Since we didn't encrypt, we can open the storage using a plain file storage:
@@ -170,6 +224,7 @@ Since we didn't encrypt, we can open the storage using a plain file storage:
     1
     >>> conn.root()['b'].open().read() == b'Hi\nworld.\n'
     True
+    >>> conn.close()
     >>> db.close()
     """
 
@@ -233,6 +288,7 @@ First, we'll create an existing file storage:
     >>> transaction.commit()
     >>> conn.root.c = conn.root().__class__((i,i) for i in range(100))
     >>> transaction.commit()
+    >>> conn.close()
     >>> db.close()
 
 Now let's open the database encrypted:
@@ -246,6 +302,7 @@ Now let's open the database encrypted:
     True
     >>> conn.root()['b'] = ZODB.blob.Blob(b'Hello\nworld.\n')
     >>> transaction.commit()
+    >>> conn.close()
     >>> db.close()
 
 Having updated the root, it is now encrypted.  To see this, we'll
@@ -264,11 +321,13 @@ Records that we didn't modify remain unencrypted
 
     >>> storage.close()
 
-Let's try packing the file 4 ways:
+Let's try packing the file:
 
 - using the encrypted storage:
 
-    >>> pos = open('data.fs.save', 'wb').write(open('data.fs', 'rb').read())
+    >>> with open('data.fs', 'rb') as source:
+    ...     with open('data.fs.save', 'wb') as target:
+    ...         pos = target.write(source.read())
     >>> db = ZODB.DB(cipher.encryptingstorage.EncryptingStorage(
     ...     ZODB.FileStorage.FileStorage('data.fs', blob_dir='blobs')))
     >>> db.pack()
@@ -278,32 +337,10 @@ Let's try packing the file 4 ways:
 
 - using the storage in non-encrypt mode:
 
-    >>> pos = open('data.fs', 'wb').write(open('data.fs.save', 'rb').read())
+    >>> with open('data.fs.save', 'rb') as source:
+    ...     with open('data.fs', 'wb') as target:
+    ...         pos = target.write(source.read())
     >>> db = ZODB.DB(cipher.encryptingstorage.EncryptingStorage(
-    ...     ZODB.FileStorage.FileStorage('data.fs', blob_dir='blobs'),
-    ...     encrypt=False))
-
-    >>> db.pack()
-    >>> sorted(ZODB.utils.u64(i[0]) for i in record_iter(db.storage))
-    [0, 2, 3]
-    >>> db.close()
-
-- using the server storage:
-
-    >>> pos = open('data.fs', 'wb').write(open('data.fs.save', 'rb').read())
-    >>> db = ZODB.DB(cipher.encryptingstorage.ServerEncryptingStorage(
-    ...     ZODB.FileStorage.FileStorage('data.fs', blob_dir='blobs'),
-    ...     encrypt=False))
-
-    >>> db.pack()
-    >>> sorted(ZODB.utils.u64(i[0]) for i in record_iter(db.storage))
-    [0, 2, 3]
-    >>> db.close()
-
-- using the server storage in non-encrypted mode:
-
-    >>> pos = open('data.fs', 'wb').write(open('data.fs.save', 'rb').read())
-    >>> db = ZODB.DB(cipher.encryptingstorage.ServerEncryptingStorage(
     ...     ZODB.FileStorage.FileStorage('data.fs', blob_dir='blobs'),
     ...     encrypt=False))
 
@@ -334,6 +371,32 @@ class Dummy:
         return unhexlify(data)
 
 
+class TestServerEncryptingStorage(unittest.TestCase):
+
+    def test_load_doesnt_decrypt(self):
+        # ServerEncryptingStorage.load doesn't decrypt the record.
+        # (This prevents it from being used with a ZODB 5 Connection)
+        # See https://github.com/zopefoundation/zc.zlibstorage/issues/5
+        map_store = ZODB.MappingStorage.MappingStorage()
+        store = cipher.encryptingstorage.EncryptingStorage(map_store)
+        # Wrap a database to create the root object, and add data to make it
+        # big enough to encrypt
+        db = ZODB.DB(store)
+        conn = db.open()
+        conn.root.a = b'x' * 128
+        transaction.commit()
+        conn.close()
+
+        root_data, _ = store.load(ZODB.utils.z64)
+        self.assertNotEqual(root_data[:2], b'.e')
+
+        server_store = cipher.encryptingstorage.ServerEncryptingStorage(map_store)
+        server_root_data, _ = server_store.load(ZODB.utils.z64)
+        self.assertEqual(server_root_data[:2], b'.e')
+
+        db.close()
+
+
 def test_wrapping():
     r"""
 Make sure the wrapping methods do what's expected.
@@ -347,7 +410,7 @@ Make sure the wrapping methods do what's expected.
     invalidateCache called
 
     >>> s.invalidate('1', list(range(3)), '')
-    invalidate ('1', [0, 1, 2], '')
+    invalidate ('1', [0, 1, 2])
 
     >>> data = b'0 1 2 3 4 5 6 7 8'
     >>> transformed = s.transform_record_data(data)
@@ -476,7 +539,9 @@ def test_suite():
             'encryptingstoragetests.%s' % class_.__name__)
         suite.addTest(s)
 
+    suite.addTest(unittest.makeSuite(TestIterator))
+    suite.addTest(unittest.makeSuite(TestServerEncryptingStorage))
     suite.addTest(doctest.DocTestSuite(
-        setUp=setupstack.setUpDirectory, tearDown=setupstack.tearDown
+        setUp=setupstack.setUpDirectory, tearDown=ZODB.tests.util.tearDown
         ))
     return suite
