@@ -149,6 +149,8 @@ class EncryptingStorage(object):
     def invalidate(self, transaction_id, oids, version=''):
         """ For IStorageWrapper
         """
+        # keep the version param to be compatible with ZEO/ZODB 4
+        assert version == ''
         return self.db.invalidate(transaction_id, oids)
 
     def references(self, record, oids=None):
