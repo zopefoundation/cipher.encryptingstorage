@@ -62,7 +62,8 @@ setup(
         test=[
             'zope.testing',
             'zope.app.testing',
-            'manuel']),
+            'manuel',
+            'mock <= 3.0.5;python_version == "2.7"']),
     include_package_data=True,
     zip_safe=False,
     )
