@@ -43,7 +43,6 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: Implementation :: CPython',
@@ -53,6 +52,7 @@ setup(
     packages=find_packages('src'),
     namespace_packages=['cipher'],
     package_dir={'': 'src'},
+    python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*',
     install_requires=[
         'ZODB3 >=3.10.0b1',
         'setuptools',
@@ -63,7 +63,9 @@ setup(
             'zope.testing',
             'zope.app.testing',
             'manuel',
-            'mock <= 3.0.5;python_version == "2.7"']),
+            'mock <= 3.0.5;python_version == "2.7"',
+            'mock;python_version >= "3.5"',
+        ]),
     include_package_data=True,
     zip_safe=False,
     )
