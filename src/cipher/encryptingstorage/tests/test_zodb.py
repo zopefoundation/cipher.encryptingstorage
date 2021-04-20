@@ -464,6 +464,8 @@ class FileStorageZlibTests(ZODB.tests.testFileStorage.FileStorageTests):
 class FileStorageZlibTestsWithBlobsEnabled(
     ZODB.tests.testFileStorage.FileStorageTests):
 
+    use_extension_bytes = True
+
     def open(self, **kwargs):
         if 'blob_dir' not in kwargs:
             kwargs = kwargs.copy()
@@ -507,12 +509,16 @@ class FileStorageZEOZlibTests(ZEO.tests.testZEO.FileStorageTests):
 
 class FileStorageClientZlibZEOZlibTests(FileStorageZEOZlibTests):
 
+    use_extension_bytes = True
+
     def _wrap_client(self, client):
         return cipher.encryptingstorage.EncryptingStorage(client)
 
 class FileStorageClientZlibZEOServerZlibTests(
     FileStorageClientZlibZEOZlibTests
     ):
+
+    use_extension_bytes = True
 
     def getConfig(self):
         return """\
