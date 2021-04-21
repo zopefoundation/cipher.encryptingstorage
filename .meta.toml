@@ -15,4 +15,10 @@ with-sphinx-doctests = false
 use-flake8 = true
 
 [coverage]
-fail-under = 0
+fail-under = 96
+
+[manifest]
+additional-rules = [
+    "recursive-include src *.txt",
+    "recursive-include src *.xml",
+    ]
