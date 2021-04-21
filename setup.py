@@ -20,10 +20,16 @@ from setuptools import setup, find_packages
 def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
+
 setup(
     name='cipher.encryptingstorage',
     version='1.1.1.dev0',
-    url="http://pypi.python.org/pypi/cipher.encryptingstorage/",
+    url="https://github.com/zopefoundation/cipher.encryptingstorage",
+    project_urls={
+        'Issue Tracker': ('https://github.com/zopefoundation/'
+                          'cipher.encryptingstorage/issues'),
+        'Sources': 'https://github.com/zopefoundation/cipher.encryptingstorage'
+    },
     author='Zope Foundation and Contributors',
     author_email='zope-dev@zope.org',
     description="ZODB storage wrapper for encryption of database records",
@@ -31,10 +37,10 @@ setup(
         read('README.rst')
         + '\n\n' +
         read('CHANGES.rst')
-        ),
+    ),
     license='ZPL 2.1',
     keywords='Python Zope encryption',
-    classifiers = [
+    classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
@@ -45,6 +51,9 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: Implementation :: CPython',
         'Natural Language :: English',
         'Operating System :: OS Independent',
@@ -57,15 +66,14 @@ setup(
         'ZODB3 >=3.10.0b1',
         'setuptools',
         'keas.kmi >= 3.1.0',
-        ],
+    ],
     extras_require=dict(
         test=[
             'zope.testing',
             'zope.app.testing',
             'manuel',
-            'mock <= 3.0.5;python_version == "2.7"',
-            'mock;python_version >= "3.5"',
+            'mock',
         ]),
     include_package_data=True,
     zip_safe=False,
-    )
+)

@@ -28,12 +28,12 @@ from cipher.encryptingstorage import encrypt_util
 class EncryptingStorage(object):
 
     copied_methods = (
-            'close', 'getName', 'getSize', 'history', 'isReadOnly',
-            'lastTransaction', 'new_oid', 'sortKey',
-            'tpc_abort', 'tpc_begin', 'tpc_finish', 'tpc_vote',
-            'temporaryDirectory',
-            'supportsUndo', 'undo', 'undoLog', 'undoInfo',
-            )
+        'close', 'getName', 'getSize', 'history', 'isReadOnly',
+        'lastTransaction', 'new_oid', 'sortKey',
+        'tpc_abort', 'tpc_begin', 'tpc_finish', 'tpc_vote',
+        'temporaryDirectory',
+        'supportsUndo', 'undo', 'undoLog', 'undoInfo',
+    )
 
     def __init__(self, base, *args, **kw):
         self.base = base
@@ -178,7 +178,7 @@ class EncryptingStorage(object):
 
 def compress(data):
     if data and (len(data) > 20) and data[:2] != b'.z':
-        compressed = b'.z'+zlib.compress(data)
+        compressed = b'.z' + zlib.compress(data)
         if len(compressed) < len(data):
             return compressed
     return data
@@ -201,7 +201,7 @@ def encrypt(data):
 
     # 2. encrypt here!!!
     data = encrypt_util.ENCRYPTION_UTILITY.encryptBytes(data)
-    return b'.e'+data
+    return b'.e' + data
 
 
 def decrypt(data):
@@ -293,7 +293,7 @@ class ServerEncryptingStorage(EncryptingStorage):
     copied_methods = EncryptingStorage.copied_methods + (
         'load', 'loadBefore', 'loadSerial', 'store', 'restore',
         'iterator', 'storeBlob', 'restoreBlob', 'record_iternext',
-        )
+    )
 
 
 class _Iterator(object):

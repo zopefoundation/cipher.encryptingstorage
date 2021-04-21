@@ -54,6 +54,7 @@ def doctest_EncryptionUtility():
       >>> shutil.rmtree(storage_dir)
     """
 
+
 def doctest_init_local_facility():
     r"""Initialize Local Facility
 
@@ -115,23 +116,26 @@ def doctest_init_local_facility():
       >>> os.remove(kek_path)
 
       >>> os.remove(conf_path)
-      """
+      """  # noqa: E501 line too long
+
 
 def setUp(test):
     setup.placelessSetUp(test)
     test.generate = facility.LocalKeyManagementFacility.generate
     facility.LocalKeyManagementFacility.generate = lambda s: b'foo'
 
+
 def tearDown(test):
     facility.LocalKeyManagementFacility.generate = test.generate
     encrypt_util.ENCRYPTION_UTILITY = encrypt_util.TrivialEncryptionUtility()
     setup.placelessTearDown()
 
+
 def test_suite():
     return doctest.DocTestSuite(
         setUp=setUp, tearDown=tearDown,
-        optionflags=doctest.NORMALIZE_WHITESPACE|
-                    doctest.ELLIPSIS|
-                    doctest.REPORT_ONLY_FIRST_FAILURE
-                    #|doctest.REPORT_NDIFF
-                    )
+        optionflags=doctest.NORMALIZE_WHITESPACE |
+        doctest.ELLIPSIS |
+        doctest.REPORT_ONLY_FIRST_FAILURE
+        # |doctest.REPORT_NDIFF
+    )
