@@ -23,7 +23,6 @@ import os
 import transaction
 import unittest
 import ZEO.tests.testZEO
-import zlib
 import ZODB.config
 import ZODB.FileStorage
 import ZODB.interfaces
@@ -33,6 +32,7 @@ import ZODB.tests.testFileStorage
 import ZODB.utils
 import ZODB.tests.util
 import zope.interface.verify
+
 
 class TestIterator(unittest.TestCase):
 
@@ -186,7 +186,8 @@ After putting some data in, the records will be encrypted:
     ...         data = r.data
     ...         if r.data[:2] != b'.e':
     ...             print('oops', repr(r.oid))
-    """
+    """  # noqa: E501 line too long
+
 
 def test_config_no_encrypt():
     r"""
@@ -227,6 +228,7 @@ Since we didn't encrypt, we can open the storage using a plain file storage:
     >>> conn.close()
     >>> db.close()
     """
+
 
 def test_config_fileconfig():
     r"""
@@ -272,7 +274,8 @@ It's enough for now that the utility gets replaced:
     >>> encrypt_util.ENCRYPTION_UTILITY # doctest: +ELLIPSIS
     <cipher.encryptingstorage.encrypt_util.TrivialEncryptionUtility object at ...>
 
-    """
+    """  # noqa: E501 line too long
+
 
 def test_mixed_encrypted_and_unencrypted_and_packing():
     r"""
@@ -315,7 +318,8 @@ open it as a file storage and inspect the record for object 0:
 
 Records that we didn't modify remain unencrypted
 
-    >>> b'cpersistent.mapping\nPersistentMapping' in storage.load(b'\0'*7+b'\2')[0]
+    >>> b'cpersistent.mapping\nPersistentMapping' in storage.load(
+    ...     b'\0'*7+b'\2')[0]
     True
 
 
@@ -349,6 +353,7 @@ Let's try packing the file:
     [0, 2, 3]
     >>> db.close()
     """
+
 
 class Dummy:
 
@@ -390,7 +395,8 @@ class TestServerEncryptingStorage(unittest.TestCase):
         root_data, _ = store.load(ZODB.utils.z64)
         self.assertNotEqual(root_data[:2], b'.e')
 
-        server_store = cipher.encryptingstorage.ServerEncryptingStorage(map_store)
+        server_store = cipher.encryptingstorage.ServerEncryptingStorage(
+            map_store)
         server_root_data, _ = server_store.load(ZODB.utils.z64)
         self.assertEqual(server_root_data[:2], b'.e')
 
@@ -430,7 +436,8 @@ Make sure the wrapping methods do what's expected.
     >>> l == [0, 1, 2, b'0', b'1', b'2', b'3', b'4', b'5', b'6', b'7', b'8']
     True
 
-    """
+    """  # noqa: E501 line too long
+
 
 def dont_double_encrypt():
     """
@@ -441,14 +448,16 @@ def dont_double_encrypt():
     that start with the encrypted marker.
 
     >>> data = b'.e'+b'x'*80
-    >>> store = cipher.encryptingstorage.EncryptingStorage(ZODB.MappingStorage.MappingStorage())
+    >>> store = cipher.encryptingstorage.EncryptingStorage(
+    ...     ZODB.MappingStorage.MappingStorage())
     >>> store._transform(data) == data
     True
     """
 
+
 def record_iter(store):
     next = None
-    while 1:
+    while True:
         oid, tid, data, next = store.record_iternext(next)
         yield oid, tid, data
         if next is None:
@@ -459,20 +468,25 @@ class FileStorageZlibTests(ZODB.tests.testFileStorage.FileStorageTests):
 
     def open(self, **kwargs):
         self._storage = cipher.encryptingstorage.EncryptingStorage(
-            ZODB.FileStorage.FileStorage('FileStorageTests.fs',**kwargs))
+            ZODB.FileStorage.FileStorage('FileStorageTests.fs', **kwargs))
+
 
 class FileStorageZlibTestsWithBlobsEnabled(
-    ZODB.tests.testFileStorage.FileStorageTests):
+        ZODB.tests.testFileStorage.FileStorageTests):
+
+    use_extension_bytes = True
 
     def open(self, **kwargs):
         if 'blob_dir' not in kwargs:
             kwargs = kwargs.copy()
             kwargs['blob_dir'] = 'blobs'
         ZODB.tests.testFileStorage.FileStorageTests.open(self, **kwargs)
-        self._storage = cipher.encryptingstorage.EncryptingStorage(self._storage)
+        self._storage = cipher.encryptingstorage.EncryptingStorage(
+            self._storage)
+
 
 class FileStorageZlibRecoveryTest(
-    ZODB.tests.testFileStorage.FileStorageRecoveryTest):
+        ZODB.tests.testFileStorage.FileStorageRecoveryTest):
 
     def setUp(self):
         ZODB.tests.StorageTestBase.StorageTestBase.setUp(self)
@@ -480,7 +494,6 @@ class FileStorageZlibRecoveryTest(
             ZODB.FileStorage.FileStorage("Source.fs", create=True))
         self._dst = cipher.encryptingstorage.EncryptingStorage(
             ZODB.FileStorage.FileStorage("Dest.fs", create=True))
-
 
 
 class FileStorageZEOZlibTests(ZEO.tests.testZEO.FileStorageTests):
@@ -493,7 +506,7 @@ class FileStorageZEOZlibTests(ZEO.tests.testZEO.FileStorageTests):
         ('ZODB.interfaces', 'IStorage'),
         ('ZODB.interfaces', 'IStorageWrapper'),
         ('zope.interface', 'Interface'),
-        )
+    )
 
     def getConfig(self):
         return """\
@@ -505,14 +518,20 @@ class FileStorageZEOZlibTests(ZEO.tests.testZEO.FileStorageTests):
         </encryptingstorage>
         """
 
+
 class FileStorageClientZlibZEOZlibTests(FileStorageZEOZlibTests):
+
+    use_extension_bytes = True
 
     def _wrap_client(self, client):
         return cipher.encryptingstorage.EncryptingStorage(client)
 
+
 class FileStorageClientZlibZEOServerZlibTests(
     FileStorageClientZlibZEOZlibTests
-    ):
+):
+
+    use_extension_bytes = True
 
     def getConfig(self):
         return """\
@@ -524,6 +543,7 @@ class FileStorageClientZlibZEOServerZlibTests(
         </serverencryptingstorage>
         """
 
+
 def test_suite():
     suite = unittest.TestSuite()
     for class_ in (
@@ -533,7 +553,7 @@ def test_suite():
         FileStorageZEOZlibTests,
         FileStorageClientZlibZEOZlibTests,
         FileStorageClientZlibZEOServerZlibTests,
-        ):
+    ):
         s = unittest.makeSuite(class_, "check")
         s.layer = ZODB.tests.util.MininalTestLayer(
             'encryptingstoragetests.%s' % class_.__name__)
@@ -543,5 +563,5 @@ def test_suite():
     suite.addTest(unittest.makeSuite(TestServerEncryptingStorage))
     suite.addTest(doctest.DocTestSuite(
         setUp=setupstack.setUpDirectory, tearDown=ZODB.tests.util.tearDown
-        ))
+    ))
     return suite

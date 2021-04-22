@@ -71,6 +71,8 @@ class TrivialEncryptionUtility(object):
 
 
 zope.interface.implementer(IEncryptionUtility, IKeyHolder)
+
+
 class EncryptionUtility(TrivialEncryptionUtility):
 
     def __init__(self, kek_path, facility):

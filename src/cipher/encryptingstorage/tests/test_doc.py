@@ -25,5 +25,5 @@ def test_suite():
         manuel.doctest.Manuel() + manuel.capture.Manuel(),
         '../README.txt',
         setUp=setupstack.setUpDirectory, tearDown=setupstack.tearDown
-        ))
+    ))
     return suite

@@ -1,7 +1,10 @@
-graft src/cipher
+# Generated from:
+# https://github.com/zopefoundation/meta/tree/master/config/pure-python
 include *.rst
 include *.txt
 include buildout.cfg
-global-exclude *.pyc
-recursive-exclude local *
-prune packages
+include tox.ini
+
+recursive-include src *.py
+recursive-include src *.txt
+recursive-include src *.xml
