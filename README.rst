@@ -84,7 +84,7 @@ Converting an existing filestorage
 ==================================
 
 If you have a ZEO setup with Plone and want to encrypt an existing filestorage,
-follow the article `Encrypt your Plone Database <http://webmeisterei.com/news/encrypt-your-plone-database>`__
+follow the article `Encrypt your Plone Database <https://web.archive.org/web/20161031172029/https://webmeisterei.com/news/encrypt-your-plone-database>`__
 
 
 Run the tests/develop
