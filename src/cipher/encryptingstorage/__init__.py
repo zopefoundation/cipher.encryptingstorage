@@ -14,9 +14,10 @@
 import os
 import shutil
 import zlib
+
 import ZODB.interfaces
-from ZODB.POSException import POSKeyError
 from ZODB.blob import BlobFile
+from ZODB.POSException import POSKeyError
 from zope.interface import directlyProvides
 from zope.interface import implementer
 from zope.interface import providedBy

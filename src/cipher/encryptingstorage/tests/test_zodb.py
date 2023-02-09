@@ -13,15 +13,14 @@
 ##############################################################################
 from __future__ import print_function
 
-from zope.testing import setupstack
-
 import base64
-from binascii import hexlify, unhexlify
-import cipher.encryptingstorage
 import doctest
 import os
-import transaction
 import unittest
+from binascii import hexlify
+from binascii import unhexlify
+
+import transaction
 import ZEO.tests.testZEO
 import ZODB.config
 import ZODB.FileStorage
@@ -29,9 +28,12 @@ import ZODB.interfaces
 import ZODB.MappingStorage
 import ZODB.tests.StorageTestBase
 import ZODB.tests.testFileStorage
-import ZODB.utils
 import ZODB.tests.util
+import ZODB.utils
 import zope.interface.verify
+from zope.testing import setupstack
+
+import cipher.encryptingstorage
 
 
 class TestIterator(unittest.TestCase):
