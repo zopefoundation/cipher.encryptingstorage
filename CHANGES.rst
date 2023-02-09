@@ -2,8 +2,8 @@
 CHANGES
 =======
 
-1.1.1 (unreleased)
-------------------
+2.0 (unreleased)
+----------------
 
 - Add support for ZODB/ZEO 5.
 

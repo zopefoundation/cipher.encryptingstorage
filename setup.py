@@ -23,7 +23,7 @@ def read(*rnames):
 
 setup(
     name='cipher.encryptingstorage',
-    version='1.1.1.dev0',
+    version='2.0.dev0',
     url="https://github.com/zopefoundation/cipher.encryptingstorage",
     project_urls={
         'Issue Tracker': ('https://github.com/zopefoundation/'
