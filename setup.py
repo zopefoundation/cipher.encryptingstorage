@@ -33,7 +33,7 @@ setup(
         'Sources': 'https://github.com/zopefoundation/cipher.encryptingstorage'
     },
     author='Zope Foundation and Contributors',
-    author_email='zope-dev@zope.org',
+    author_email='zope-dev@zope.dev',
     description="ZODB storage wrapper for encryption of database records",
     long_description=(
         read('README.rst')

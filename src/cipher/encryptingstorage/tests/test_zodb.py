@@ -11,7 +11,6 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-from __future__ import print_function
 
 import base64
 import doctest
@@ -41,7 +40,7 @@ class TestIterator(unittest.TestCase):
     def test_iterator_closes_underlying_explicitly(self):
         # https://github.com/zopefoundation/zc.zlibstorage/issues/4
 
-        class Storage(object):
+        class Storage:
 
             storage_value = 42
             iterator_closed = False
@@ -556,13 +555,15 @@ def test_suite():
         FileStorageClientZlibZEOZlibTests,
         FileStorageClientZlibZEOServerZlibTests,
     ):
-        s = unittest.makeSuite(class_, "check")
+        s = unittest.defaultTestLoader.loadTestsFromTestCase(class_)
         s.layer = ZODB.tests.util.MininalTestLayer(
             'encryptingstoragetests.%s' % class_.__name__)
         suite.addTest(s)
 
-    suite.addTest(unittest.makeSuite(TestIterator))
-    suite.addTest(unittest.makeSuite(TestServerEncryptingStorage))
+    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
+        TestIterator))
+    suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
+        TestServerEncryptingStorage))
     suite.addTest(doctest.DocTestSuite(
         setUp=setupstack.setUpDirectory, tearDown=ZODB.tests.util.tearDown
     ))

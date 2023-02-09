@@ -26,7 +26,7 @@ from cipher.encryptingstorage import encrypt_util
 
 
 @implementer(ZODB.interfaces.IStorageWrapper)
-class EncryptingStorage(object):
+class EncryptingStorage:
 
     copied_methods = (
         'close', 'getName', 'getSize', 'history', 'isReadOnly',
@@ -297,7 +297,7 @@ class ServerEncryptingStorage(EncryptingStorage):
     )
 
 
-class _Iterator(object):
+class _Iterator:
     # A class that allows for proper closing of the underlying iterator
     # as well as avoiding any GC issues.
     # (https://github.com/zopefoundation/zc.zlibstorage/issues/4)
@@ -327,7 +327,7 @@ class _Iterator(object):
         return getattr(self._base_it, name)
 
 
-class Transaction(object):
+class Transaction:
 
     def __init__(self, trans):
         self.__trans = trans

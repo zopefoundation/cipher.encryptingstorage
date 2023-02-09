@@ -11,18 +11,9 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-
-from __future__ import absolute_import
-
-
-try:
-    from ConfigParser import RawConfigParser
-except ImportError:
-    # PY3
-    from configparser import RawConfigParser
-
 import os
 import shutil
+from configparser import RawConfigParser
 
 import zope.component
 import zope.interface
@@ -52,7 +43,7 @@ class IEncryptionUtility(zope.interface.Interface):
         """Reads from fsrc and writes the encrypted data to fdst."""
 
 
-class TrivialEncryptionUtility(object):
+class TrivialEncryptionUtility:
 
     def encrypt(self, data):
         return self.encryptBytes(data.encode('utf-8'))
@@ -114,7 +105,7 @@ ENCRYPTION_UTILITY = TrivialEncryptionUtility()
 
 def init_local_facility(conf):
     config = RawConfigParser()
-    config.readfp(open(conf['__file__'], 'r'))
+    config.readfp(open(conf['__file__']))
 
     global ENCRYPTION_UTILITY
 
