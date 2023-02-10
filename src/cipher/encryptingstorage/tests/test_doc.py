@@ -11,12 +11,12 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-from zope.testing import setupstack
+import unittest
 
 import manuel.capture
 import manuel.doctest
 import manuel.testing
-import unittest
+from zope.testing import setupstack
 
 
 def test_suite():

@@ -14,8 +14,8 @@
 """Python utility tests"""
 import doctest
 import os
-import tempfile
 import shutil
+import tempfile
 
 from keas.kmi import facility
 from zope.app.testing import setup
